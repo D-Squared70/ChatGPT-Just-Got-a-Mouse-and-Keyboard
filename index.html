@@ -128,8 +128,10 @@ svg .accs{fill:none;stroke:var(--acc);stroke-width:2.2;stroke-linecap:round;stro
 .tour{position:relative;height:430px}
 .tour .hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:210px;height:210px;border-radius:50%;
   border:1px solid var(--hair);background:radial-gradient(circle at 50% 42%,rgba(237,230,216,.07),transparent 70%),var(--panel);
-  display:flex;align-items:center;justify-content:center}
-.tour .hub img{width:108px;height:108px;object-fit:contain}
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 0 10px color-mix(in srgb,var(--acc) 5%,transparent),0 24px 70px rgba(0,0,0,.32)}
+.tour .hub img{display:block;width:148px;height:148px;object-fit:contain;
+  filter:drop-shadow(0 14px 24px rgba(0,0,0,.28))}
 .callout{position:absolute;width:250px}
 .callout .ck{font:13.5px 'Share Tech Mono';letter-spacing:.18em;color:var(--acc);margin-bottom:6px;white-space:nowrap}
 .callout .cb{font-family:'Arvo';font-size:21px;line-height:1.2}
@@ -352,7 +354,7 @@ svg .accs{fill:none;stroke:var(--acc);stroke-width:2.2;stroke-linecap:round;stro
     <h1>Where it all <span class="a">lives</span>.</h1>
     <div class="body">
       <div class="tour">
-        <div class="hub"><img src="logos/chatgpt.png" alt="ChatGPT"></div>
+        <div class="hub"><img src="./chatgpt.png" alt="ChatGPT logo" width="148" height="148"></div>
       </div>
     </div>
   </section>
