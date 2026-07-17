@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChatGPT Just Got a Mouse and Keyboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400&family=Overpass:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B0A08;
+  --ink:#EDE6D8;
+  --dim:rgba(237,230,216,.66);
+  --faint:rgba(237,230,216,.44);
+  --hair:rgba(237,230,216,.13);
+  --panel:rgba(237,230,216,.028);
+  --acc:#D9A64A;
+  --bad:#E0564A;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);overflow:hidden}
+body{font-family:'Overpass',sans-serif;color:var(--ink)}
+
+/* ---------- stage ---------- */
+#stage{position:absolute;left:50%;top:50%;height:720px;transform-origin:center center;
+  background:
+    radial-gradient(120% 90% at 50% 8%, rgba(237,230,216,.035), transparent 55%),
+    var(--bg);}
+#stage::after{ /* perforation strip, far right — punched roll */
+  content:"";position:absolute;top:0;bottom:0;right:16px;width:6px;opacity:.14;
+  background:repeating-linear-gradient(to bottom, var(--ink) 0 9px, transparent 9px 26px);
+  border-radius:3px;
+  -webkit-mask-image:linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+          mask-image:linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);}
+#stage::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(130% 120% at 50% 50%, transparent 60%, rgba(0,0,0,.5));}
+
+/* ---------- chrome ---------- */
+#counter{position:absolute;top:34px;right:44px;font:13px 'Share Tech Mono';letter-spacing:.18em;color:var(--faint);z-index:9}
+#nav{position:absolute;left:52px;top:50%;transform:translateY(-50%);z-index:9;list-style:none}
+#nav li{display:flex;align-items:center;gap:13px;padding:9px 0;cursor:pointer}
+#nav .slot{width:13px;height:6px;border-radius:3px;background:var(--hair);transition:background .5s,box-shadow .5s;flex:none}
+#nav .lbl{font:10.5px 'Share Tech Mono';letter-spacing:.17em;color:var(--faint);transition:color .5s;white-space:nowrap}
+#nav li.done .slot{background:rgba(237,230,216,.32)}
+#nav li.done .lbl{color:rgba(237,230,216,.34)}
+#nav li.act .slot{background:var(--acc);box-shadow:0 0 10px color-mix(in srgb,var(--acc) 55%,transparent)}
+#nav li.act .lbl{color:var(--ink)}
+
+/* ---------- slides ---------- */
+.slide{position:absolute;inset:0;padding:72px 96px 56px 252px;opacity:0;transition:opacity .45s ease;pointer-events:none;display:flex;flex-direction:column}
+.slide.show{opacity:1;pointer-events:auto}
+.kick{display:flex;align-items:center;gap:14px;font:12px 'Share Tech Mono';letter-spacing:.24em;color:var(--acc)}
+.kick .holes{display:flex;gap:5px}
+.kick .holes i{width:11px;height:5px;border-radius:2.5px;background:var(--acc);display:block}
+.kick .holes i:nth-child(2){opacity:.55}.kick .holes i:nth-child(3){opacity:.28}
+h1{font-family:'Arvo',serif;font-weight:400;font-size:46px;line-height:1.12;letter-spacing:.002em;margin:16px 0 4px;max-width:900px}
+h1 .a{color:var(--acc);font-style:italic}
+.sub{font-family:'Arvo',serif;font-style:italic;font-size:19px;color:var(--dim);margin-top:2px}
+.body{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0}
+
+/* reveals */
+.rv{opacity:0;transform:translateY(10px);transition:opacity .45s ease,transform .45s ease}
+.rv.on{opacity:1;transform:none}
+/* spotlight rows */
+.sp{transition:opacity .4s ease}
+.slide[data-mode="cur"] .sp{opacity:.20}
+.slide[data-mode="cur"] .sp.cur{opacity:1}
+/* recap additive */
+.rc{opacity:.13;transition:opacity .45s ease}
+.rc.on{opacity:.36}
+.rc.cur{opacity:1}
+
+/* shared bits */
+.mono{font-family:'Share Tech Mono';letter-spacing:.06em}
+.microlbl{font:11px 'Share Tech Mono';letter-spacing:.2em;color:var(--faint)}
+svg text{font-family:'Share Tech Mono';letter-spacing:.12em}
+svg .stroke{fill:none;stroke:var(--ink);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+svg .haird{fill:none;stroke:var(--hair);stroke-width:1.2}
+svg .accs{fill:none;stroke:var(--acc);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ============ S1 two jobs split ============ */
+.jobs{display:flex;gap:36px;align-items:stretch}
+.job{flex:1;border:1px solid var(--hair);background:var(--panel);border-radius:14px;padding:34px 36px 30px;position:relative}
+.job .jt{font-family:'Arvo';font-size:27px;margin:20px 0 6px}
+.job .jd{font-size:16.5px;font-weight:300;color:var(--dim);line-height:1.5}
+.job .jn{position:absolute;top:26px;right:30px;font:12px 'Share Tech Mono';letter-spacing:.22em;color:var(--faint)}
+
+/* ============ S5 / S11 / S14 rows ============ */
+.rows{display:flex;flex-direction:column;gap:20px;max-width:940px}
+.row{display:flex;align-items:center;gap:26px;border:1px solid var(--hair);background:var(--panel);border-radius:12px;padding:20px 28px}
+.row .ric{flex:none;width:54px;height:54px;display:flex;align-items:center;justify-content:center}
+.row .rt{font-size:21px;font-weight:600;letter-spacing:.005em}
+.row .rt .q{color:var(--acc)}
+.row.dashed{border-style:dashed;background:transparent}
+.row .chips{display:flex;gap:12px;margin-top:9px}
+.chip{font:12.5px 'Share Tech Mono';letter-spacing:.1em;color:var(--acc);border:1px solid color-mix(in srgb,var(--acc) 45%,transparent);border-radius:7px;padding:5px 12px 3px;background:color-mix(in srgb,var(--acc) 9%,transparent)}
+.rulebox{margin-top:26px;max-width:940px;border:1.5px dashed color-mix(in srgb,var(--acc) 60%,transparent);border-radius:10px;padding:15px 24px 12px;font:15px 'Share Tech Mono';letter-spacing:.14em;color:var(--acc);text-align:center;background:color-mix(in srgb,var(--acc) 6%,transparent)}
+
+/* ============ S6 prompt ============ */
+.pwrap{max-width:1020px;border:1px solid var(--hair);border-radius:14px;background:var(--panel);padding:30px 40px 28px;position:relative}
+.ptab{position:absolute;top:-13px;left:34px;font:11px 'Share Tech Mono';letter-spacing:.26em;color:var(--acc);background:var(--bg);padding:4px 14px 2px;border:1px solid color-mix(in srgb,var(--acc) 45%,transparent);border-radius:6px}
+.pline{display:grid;grid-template-columns:158px 1fr;gap:0 26px;align-items:baseline;padding:9px 0}
+.pline + .pline{border-top:1px solid rgba(237,230,216,.05)}
+.pgut{font:13px 'Share Tech Mono';letter-spacing:.15em;color:rgba(237,230,216,.72);text-align:right;position:relative;top:-2px}
+.ptx{font-family:'Share Tech Mono';font-size:19px;line-height:1.65;color:var(--ink)}
+.hl{background:color-mix(in srgb,var(--acc) 26%,transparent);color:#fff;padding:1px 8px 0;border-radius:6px;box-shadow:inset 0 -2px 0 var(--acc);white-space:nowrap}
+.pvar{color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,transparent);border:1px solid color-mix(in srgb,var(--acc) 55%,transparent);padding:0 8px;border-radius:6px}
+
+/* ============ S7 receipt ============ */
+.receipt-lay{display:flex;gap:64px;align-items:flex-start}
+.slip{width:330px;background:var(--panel);border:1px solid var(--hair);border-radius:4px 4px 10px 10px;padding:26px 30px 30px;position:relative}
+.slip::before{content:"";position:absolute;top:-1px;left:0;right:0;height:10px;
+  background:repeating-linear-gradient(90deg, var(--bg) 0 9px, transparent 9px 18px);border-top:1px solid var(--hair)}
+.slip .sl-h{font:12px 'Share Tech Mono';letter-spacing:.26em;color:var(--acc);text-align:center;padding-bottom:14px;border-bottom:1px dashed var(--hair);margin-bottom:16px}
+.slip .sl-r{display:flex;justify-content:space-between;font-family:'Share Tech Mono';font-size:16px;padding:7px 0;color:var(--ink)}
+.slip .sl-r b{font-weight:400;color:var(--acc)}
+.slip .sl-note{margin-top:14px;padding-top:12px;border-top:1px dashed var(--hair);font:12.5px 'Share Tech Mono';color:var(--dim);letter-spacing:.04em;line-height:1.6}
+.verdicts{display:flex;flex-direction:column;gap:22px;padding-top:26px}
+.verd{display:flex;align-items:center;gap:20px;border:1px solid var(--hair);border-radius:12px;padding:18px 26px;background:var(--panel);min-width:400px}
+.verd .vt{font-size:20px;font-weight:600}
+.verd .vtag{margin-left:auto;font:11.5px 'Share Tech Mono';letter-spacing:.2em;padding:5px 12px 3px;border-radius:6px}
+.verd.ok .vtag{color:var(--dim);border:1px solid var(--hair)}
+.verd.bad{border-color:color-mix(in srgb,var(--bad) 45%,transparent)}
+.verd.bad .vtag{color:var(--bad);border:1px solid color-mix(in srgb,var(--bad) 55%,transparent);background:color-mix(in srgb,var(--bad) 10%,transparent)}
+
+/* ============ S8 app tour ============ */
+.tour{position:relative;height:430px}
+.tour .hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:210px;height:210px;border-radius:50%;
+  border:1px solid var(--hair);background:radial-gradient(circle at 50% 42%,rgba(237,230,216,.07),transparent 70%),var(--panel);
+  display:flex;align-items:center;justify-content:center}
+.tour .hub img{width:108px;height:108px;object-fit:contain}
+.callout{position:absolute;width:250px}
+.callout .ck{font:13.5px 'Share Tech Mono';letter-spacing:.18em;color:var(--acc);margin-bottom:6px;white-space:nowrap}
+.callout .cb{font-family:'Arvo';font-size:21px;line-height:1.2}
+.callout .cs{font-size:14.5px;font-weight:300;color:var(--dim);margin-top:5px}
+.callout.rt{text-align:right}
+.tourlines{position:absolute;inset:0;pointer-events:none}
+.setupchip{position:absolute;left:50%;transform:translateX(-50%);bottom:0;font:12px 'Share Tech Mono';letter-spacing:.16em;color:var(--dim);border:1px dashed var(--hair);border-radius:8px;padding:7px 14px 5px;white-space:nowrap}
+
+/* ============ S10 mac/windows ============ */
+.duo{display:flex;gap:40px}
+.mach{flex:1;border:1px solid var(--hair);border-radius:14px;background:var(--panel);padding:26px 30px 24px}
+.mach .mh{font:11.5px 'Share Tech Mono';letter-spacing:.24em;color:var(--faint);margin-bottom:16px}
+.mach .mt{font-family:'Arvo';font-size:22px;margin-top:16px}
+.mach .ms{font-size:15px;font-weight:300;color:var(--dim);margin-top:4px}
+
+/* ============ S12 record flow ============ */
+.flow{display:flex;align-items:stretch;gap:0}
+.fnode{flex:1;border:1px solid var(--hair);border-radius:13px;background:var(--panel);padding:26px 20px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:212px}
+.fnode .fic{height:74px;display:flex;align-items:center;justify-content:center}
+.fnode .ft{font-family:'Arvo';font-size:19px;line-height:1.25;margin-top:12px}
+.fnode .fs{font:12px 'Share Tech Mono';letter-spacing:.1em;color:var(--dim);margin-top:9px;line-height:1.7}
+.fnode.big .ft{font-family:'Arvo';font-size:52px;color:var(--acc);margin-top:2px;line-height:1}
+.farr{flex:none;width:56px;display:flex;align-items:center;justify-content:center}
+
+/* ============ S13 checks ============ */
+.checks{display:flex;gap:30px}
+.check{flex:1;border:1px solid var(--hair);border-radius:14px;background:var(--panel);padding:30px 28px 26px;text-align:center}
+.check .cic{height:88px;display:flex;align-items:center;justify-content:center}
+.check .ct{font-family:'Arvo';font-size:20px;margin-top:16px;white-space:nowrap}
+.check .cs{font-size:15.5px;font-weight:300;color:var(--dim);margin-top:7px}
+
+/* caveat chip */
+.caveat{margin-top:26px;align-self:flex-start;font:12px 'Share Tech Mono';letter-spacing:.18em;color:var(--dim);border:1px dashed var(--hair);border-radius:8px;padding:7px 14px 5px}
+
+/* ============ S16 recap ============ */
+.recap{display:flex;flex-direction:column;gap:0;max-width:880px}
+.rcrow{display:flex;align-items:center;gap:26px;padding:21px 6px;border-bottom:1px solid rgba(237,230,216,.06)}
+.rcrow:last-child{border-bottom:none}
+.rcrow .rslot{flex:none;width:15px;height:7px;border-radius:3.5px;background:var(--acc)}
+.rcrow .rtx{font-family:'Arvo';font-size:25px}
+.rcrow .rtx .a{color:var(--acc);font-style:italic}
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <div id="counter">1/16</div>
+  <ul id="nav"></ul>
+
+  <!-- ================= 1 · TWO JOBS ================= -->
+  <section class="slide" data-ch="0">
+    <div class="kick"><span class="holes"><i></i><i></i><i></i></span>THE TWO JOBS</div>
+    <h1>Almost all of it is <span class="a">one of two jobs</span>.</h1>
+    <div class="body">
+      <div class="jobs">
+        <div class="job">
+          <span class="jn">JOB ONE</span>
+          <svg width="96" height="58" viewBox="0 0 96 58">
+            <rect class="stroke" x="2" y="12" width="30" height="34" rx="5"/>
+            <rect class="stroke" x="64" y="12" width="30" height="34" rx="5"/>
+            <path class="accs" d="M37 29 L52 29"/>
+            <path class="accs" d="M49.5 23 L55.5 29 L49.5 35"/>
+            <line class="haird" x1="7" y1="21" x2="27" y2="21"/><line class="haird" x1="7" y1="28" x2="27" y2="28"/><line class="haird" x1="7" y1="35" x2="20" y2="35"/>
+            <line class="haird" x1="69" y1="21" x2="89" y2="21"/><line class="haird" x1="69" y1="28" x2="89" y2="28"/>
+          </svg>
+          <div class="jt">Move</div>
+          <div class="jd">You're the one carrying information between screens.</div>
+        </div>
+        <div class="job">
+          <span class="jn">JOB TWO</span>
+          <svg width="96" height="58" viewBox="0 0 96 58">
+            <rect class="stroke" x="26" y="4" width="66" height="50" rx="6"/>
+            <line class="haird" x1="26" y1="16" x2="92" y2="16"/>
+            <line class="haird" x1="44" y1="16" x2="44" y2="54"/>
+            <path class="accs" d="M4 46 C18 46 20 28 34 28 C44 28 46 40 58 40 L66 40"/>
+            <path class="accs" d="M63.5 34 L69.5 40 L63.5 46"/>
+          </svg>
+          <div class="jt">Figure it out</div>
+          <div class="jd">You know what you want — not where it's hidden.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 2 · MOVE JOB ================= -->
+  <section class="slide" data-ch="0">
+    <div class="kick"><span class="holes"><i></i><i></i><i></i></span>THE MOVE JOB</div>
+    <h1>Not hard. <span class="a">Just long.</span></h1>
+    <div class="body">
+      <svg viewBox="0 0 920 320" style="width:100%;max-width:1000px">
+        <defs>
+          <marker id="mv" markerWidth="9" markerHeight="9" refX="6.5" refY="4.5" orient="auto">
+            <path d="M2 1.5 L7 4.5 L2 7.5" fill="none" stroke="var(--acc)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <!-- screen A -->
+        <rect class="stroke" x="24" y="34" width="264" height="184" rx="10"/>
+        <line class="haird" x1="24" y1="64" x2="288" y2="64"/>
+        <circle cx="42" cy="49" r="3" fill="var(--faint)"/><circle cx="54" cy="49" r="3" fill="var(--faint)"/><circle cx="66" cy="49" r="3" fill="var(--faint)"/>
+        <line class="haird" x1="46" y1="90" x2="200" y2="90"/><text x="266" y="94" text-anchor="end" font-size="11" fill="var(--dim)">4,120</text>
+        <line class="haird" x1="46" y1="118" x2="188" y2="118"/><text x="266" y="122" text-anchor="end" font-size="11" fill="var(--dim)">918</text>
+        <line class="haird" x1="46" y1="146" x2="206" y2="146"/><text x="266" y="150" text-anchor="end" font-size="11" fill="var(--dim)">12,540</text>
+        <line class="haird" x1="46" y1="174" x2="182" y2="174"/><text x="266" y="178" text-anchor="end" font-size="11" fill="var(--dim)">77</text>
+        <text x="156" y="248" text-anchor="middle" font-size="11.5" fill="var(--dim)">SCREEN A — THE PORTAL</text>
+        <!-- screen B -->
+        <rect class="stroke" x="632" y="34" width="264" height="184" rx="10"/>
+        <line class="haird" x1="632" y1="64" x2="896" y2="64"/>
+        <line class="haird" x1="720" y1="64" x2="720" y2="218"/><line class="haird" x1="808" y1="64" x2="808" y2="218"/>
+        <line class="haird" x1="632" y1="102" x2="896" y2="102"/><line class="haird" x1="632" y1="140" x2="896" y2="140"/><line class="haird" x1="632" y1="178" x2="896" y2="178"/>
+        <text x="764" y="248" text-anchor="middle" font-size="11.5" fill="var(--dim)">SCREEN B — THE SPREADSHEET</text>
+        <!-- shuttle arrows (kept low, clear of READ / CLICK labels) -->
+        <path class="accs" d="M296 176 C330 176 352 172 372 166" marker-end="url(#mv)"/>
+        <path class="accs" d="M548 166 C568 172 590 176 624 176" marker-end="url(#mv)"/>
+        <!-- the loop -->
+        <circle cx="460" cy="126" r="66" fill="none" stroke="var(--hair)" stroke-width="1.3" stroke-dasharray="3 7"/>
+        <!-- person -->
+        <circle class="stroke" cx="460" cy="112" r="11"/>
+        <path class="stroke" d="M441 148 C441 133 479 133 479 148"/>
+        <text x="460" y="34" text-anchor="middle" font-size="11.5" fill="var(--dim)">OPEN</text>
+        <text x="460" y="222" text-anchor="middle" font-size="11.5" fill="var(--dim)">TYPE</text>
+        <text x="376" y="130" text-anchor="end" font-size="11.5" fill="var(--dim)">READ</text>
+        <text x="544" y="130" text-anchor="start" font-size="11.5" fill="var(--dim)">CLICK</text>
+        <!-- repeat count -->
+        <text x="460" y="296" text-anchor="middle" font-size="13" fill="var(--acc)" letter-spacing="4">× EIGHTY INVOICES</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ================= 3 · FIGURE-IT-OUT ================= -->
+  <section class="slide" data-ch="0">
+    <div class="kick"><span class="holes"><i></i><i></i><i></i></span>THE FIGURE-IT-OUT JOB</div>
+    <h1>You know the <span class="a">what</span> — not the <span class="a">where</span>.</h1>
+    <div class="body">
+      <svg viewBox="0 0 920 340" style="width:100%;max-width:1000px">
+        <defs>
+          <marker id="fz" markerWidth="9" markerHeight="9" refX="6.5" refY="4.5" orient="auto">
+            <path d="M2 1.5 L7 4.5 L2 7.5" fill="none" stroke="var(--acc)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <!-- goal pill -->
+        <rect x="14" y="142" width="238" height="52" rx="26" fill="none" stroke="var(--acc)" stroke-width="1.6" stroke-dasharray="5 6"/>
+        <text x="133" y="173" text-anchor="middle" font-size="13.5" fill="var(--ink)">"turn off auto-renew"</text>
+        <text x="133" y="216" text-anchor="middle" font-size="10.5" fill="var(--faint)">YOUR WORDS</text>
+        <!-- site panel -->
+        <rect class="haird" x="326" y="16" width="580" height="308" rx="12"/>
+        <text x="346" y="42" font-size="10.5" fill="var(--dim)">THE SITE'S MENUS</text>
+        <!-- level 1 -->
+        <g opacity=".95"><rect class="stroke" x="356" y="58" width="128" height="38" rx="7"/><text x="420" y="82" text-anchor="middle" font-size="11.5" fill="var(--ink)">SETTINGS</text></g>
+        <g opacity=".32"><rect class="stroke" x="356" y="118" width="128" height="38" rx="7"/><text x="420" y="142" text-anchor="middle" font-size="11.5" fill="var(--ink)">PROFILE</text></g>
+        <g opacity=".32"><rect class="stroke" x="356" y="178" width="128" height="38" rx="7"/><text x="420" y="202" text-anchor="middle" font-size="11.5" fill="var(--ink)">SECURITY</text></g>
+        <g opacity=".32"><rect class="stroke" x="356" y="238" width="128" height="38" rx="7"/><text x="420" y="262" text-anchor="middle" font-size="11.5" fill="var(--ink)">HELP</text></g>
+        <!-- level 2 -->
+        <g opacity=".95"><rect class="stroke" x="536" y="88" width="128" height="38" rx="7"/><text x="600" y="112" text-anchor="middle" font-size="11.5" fill="var(--ink)">BILLING</text></g>
+        <g opacity=".32"><rect class="stroke" x="536" y="148" width="128" height="38" rx="7"/><text x="600" y="172" text-anchor="middle" font-size="11.5" fill="var(--ink)">PLANS</text></g>
+        <g opacity=".32"><rect class="stroke" x="536" y="208" width="128" height="38" rx="7"/><text x="600" y="232" text-anchor="middle" font-size="11.5" fill="var(--ink)">TEAM</text></g>
+        <!-- level 3 -->
+        <g><rect x="716" y="118" width="164" height="46" rx="8" fill="color-mix(in srgb,var(--acc) 10%,transparent)" stroke="var(--acc)" stroke-width="1.8"/>
+           <text x="782" y="146" text-anchor="middle" font-size="11.5" fill="var(--ink)">AUTO-RENEW</text>
+           <rect x="842" y="132" width="26" height="14" rx="7" fill="none" stroke="var(--acc)" stroke-width="1.5"/>
+           <circle cx="850" cy="139" r="4.5" fill="var(--acc)"/></g>
+        <g opacity=".32"><rect class="stroke" x="716" y="188" width="164" height="38" rx="7"/><text x="798" y="212" text-anchor="middle" font-size="11.5" fill="var(--ink)">INVOICES</text></g>
+        <!-- AI path -->
+        <path class="accs" d="M256 168 C300 168 306 77 348 77"/>
+        <path class="accs" d="M484 77 C516 77 512 107 528 107"/>
+        <path class="accs" d="M664 107 C692 107 688 141 704 141"/>
+        <path class="accs" d="M698.5 135.5 L704 141 L698.5 146.5"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ================= 4 · ONE QUESTION ================= -->
+  <section class="slide" data-ch="1">
+    <div class="kick"><span class="holes"><i></i><i></i><i></i></span>ONE QUESTION</div>
+    <h1>Where does the task <span class="a">live?</span></h1>
+    <div class="body">
+      <svg viewBox="0 0 920 310" style="width:100%;max-width:1000px">
+        <defs>
+          <marker id="fk" markerWidth="9" markerHeight="9" refX="6.5" refY="4.5" orient="auto">
+            <path d="M2 1.5 L7 4.5 L2 7.5" fill="none" stroke="var(--acc)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <circle cx="86" cy="155" r="7" fill="var(--acc)"/>
+        <text x="86" y="192" text-anchor="middle" font-size="11" fill="var(--dim)">THE TASK</text>
+        <path class="accs" d="M96 150 C210 130 240 72 356 72" marker-end="url(#fk)"/>
+        <path class="accs" d="M96 160 C210 180 240 238 356 238" marker-end="url(#fk)"/>
+        <!-- browser card -->
+        <rect class="stroke" x="368" y="28" width="510" height="90" rx="12"/>
+        <rect class="haird" x="394" y="60" width="150" height="26" rx="13"/>
+        <circle cx="408" cy="73" r="3" fill="var(--faint)"/><circle cx="419" cy="73" r="3" fill="var(--faint)"/><circle cx="430" cy="73" r="3" fill="var(--faint)"/>
+        <line class="haird" x1="442" y1="73" x2="530" y2="73"/>
+        <text x="852" y="80" text-anchor="end" font-size="17" fill="var(--ink)" font-weight="600">IN-APP BROWSER</text>
+        <!-- desktop card -->
+        <rect class="stroke" x="368" y="194" width="510" height="90" rx="12"/>
+        <rect class="stroke" x="394" y="218" width="52" height="42" rx="6"/>
+        <line class="haird" x1="394" y1="230" x2="446" y2="230"/>
+        <circle cx="401" cy="224" r="2" fill="var(--faint)"/><circle cx="409" cy="224" r="2" fill="var(--faint)"/>
+        <text x="852" y="246" text-anchor="end" font-size="17" fill="var(--ink)" font-weight="600">COMPUTER USE</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ================= THE PROMPT ================= -->
+  <section class="slide" data-ch="2">
+    <div class="kick"><span class="holes"><i></i><i></i><i></i></span>THE HANDOFF</div>
+    <h1>Give the <span class="a">goal</span>, not the clicks.</h1>
+    <div class="body">
+      <div class="pwrap">
+        <span class="ptab">PROMPT</span>
+        <div class="pline"><span class="pgut">WHERE</span><span class="ptx">Go to <span class="pvar">[the portal]</span>.</span></div>
+        <div class="pline"><span class="pgut">THE FINISHED THING</span><span class="ptx">Pull the June numbers for every active client. Put them in a spreadsheet with one row per client.</span></div>
+        <div class="pline"><span class="pgut">WHEN UNSURE</span><span class="ptx">If a value is missing or unclear, <span class="hl">leave it blank and tell me why</span>.</span></div>
+        <div class="pline"><span class="pgut">THE RECEIPT</span><span class="ptx">When you're done, tell me <span class="hl">how many clients you found</span> and <span class="hl">how many you processed</span>.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= THE APP ================= -->
+  <section class="slide" data-ch="3">
+    <div class="kick"><span class="holes"><i></i><i></i><i></i></span>THE APP</div>
+    <h1>Where it all <span class="a">lives</span>.</h1>
+    <div class="body">
+      <div class="tour">
+        <div class="hub"><img src="logos/chatgpt.png" alt="ChatGPT"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= WHAT'S NEW ================= -->
+  <section class="slide" data-ch="4">
+    <div class="kick"><span class="holes"><i></i><i></i><i></i></span>COMPUTER USE</div>
+    <h1>It can run <span class="a">while you work</span>.</h1>
+    <div class="body">
+      <div class="duo">
+        <div class="mach">
+          <div class="mh">ON A MAC</div>
+          <svg viewBox="0 0 360 190" style="width:100%">
+            <rect class="stroke" x="6" y="6" width="348" height="178" rx="9"/>
+            <line class="haird" x1="34" y1="36" x2="270" y2="36"/><line class="haird" x1="34" y1="58" x2="300" y2="58"/>
+            <line class="haird" x1="34" y1="80" x2="250" y2="80"/><line class="haird" x1="34" y1="102" x2="288" y2="102"/>
+            <text x="34" y="132" font-size="10.5" fill="var(--faint)">YOUR WORK</text>
+            <rect x="228" y="112" width="112" height="62" rx="7" fill="var(--bg)" stroke="var(--acc)" stroke-width="1.8"/>
+            <path d="M262 132 L262 152 L267 147 L271 156 L275 154 L271 145 L278 144 Z" fill="var(--acc)"/>
+            <circle cx="330" cy="122" r="3.5" fill="var(--acc)"/>
+            <text x="240" y="130" font-size="9" fill="var(--acc)">AGENT</text>
+          </svg>
+          <div class="mt">Runs in the background</div>
+        </div>
+        <div class="mach">
+          <div class="mh">ON WINDOWS</div>
+          <svg viewBox="0 0 360 190" style="width:100%">
+            <rect x="6" y="6" width="348" height="178" rx="9" fill="color-mix(in srgb,var(--acc) 7%,transparent)" stroke="var(--acc)" stroke-width="1.8"/>
+            <line x1="34" y1="42" x2="300" y2="42" stroke="color-mix(in srgb,var(--acc) 40%,transparent)" stroke-width="1.4"/>
+            <line x1="34" y1="70" x2="326" y2="70" stroke="color-mix(in srgb,var(--acc) 40%,transparent)" stroke-width="1.4"/>
+            <line x1="34" y1="98" x2="280" y2="98" stroke="color-mix(in srgb,var(--acc) 40%,transparent)" stroke-width="1.4"/>
+            <path d="M182 108 L182 146 L192 136 L200 154 L207 151 L199 134 L211 132 Z" fill="var(--acc)"/>
+            <text x="34" y="168" font-size="9.5" fill="var(--acc)" opacity=".8">AGENT HAS THE SCREEN</text>
+          </svg>
+          <div class="mt">Takes the screen</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 11 · THE FINE PRINT ================= -->
+  <section class="slide" data-ch="4" data-mode="cur">
+    <div class="kick"><span class="holes"><i></i><i></i><i></i></span>COMPUTER USE</div>
+    <h1>The <span class="a">fine print</span>.</h1>
+    <div class="body">
+      <div class="rows">
+        <div class="row sp" data-s="1">
+          <div class="ric"><svg width="46" height="46" viewBox="0 0 46 46">
+            <path class="stroke" d="M7 33 A16 16 0 1 1 39 33"/>
+            <line class="haird" x1="10" y1="24" x2="14" y2="26"/>
+            <line class="haird" x1="23" y1="17" x2="23" y2="21"/>
+            <line class="haird" x1="36" y1="24" x2="32" y2="26"/>
+            <line x1="23" y1="33" x2="13" y2="30" stroke="var(--acc)" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="23" cy="33" r="2.8" fill="var(--acc)"/>
+          </svg></div>
+          <div><div class="rt">Pixels and a mouse — the slowest option</div></div>
+        </div>
+        <div class="row sp" data-s="2">
+          <div class="ric"><svg width="46" height="46" viewBox="0 0 46 46">
+            <rect class="stroke" x="6" y="12" width="34" height="22" rx="4"/>
+            <rect class="stroke" x="11" y="18" width="10" height="10" rx="2"/>
+            <path class="accs" d="M13 23 L15.5 25.5 L19 21" stroke-width="1.8"/>
+            <line class="haird" x1="26" y1="21" x2="36" y2="21"/><line class="haird" x1="26" y1="26" x2="33" y2="26"/>
+          </svg></div>
+          <div><div class="rt">"Prove you're human" checks still land on <span class="q">you</span></div></div>
+        </div>
+        <div class="row sp" data-s="3">
+          <div class="ric"><svg width="46" height="46" viewBox="0 0 46 46">
+            <rect class="stroke" x="4" y="8" width="28" height="20" rx="3" opacity=".5"/>
+            <rect class="stroke" x="14" y="18" width="28" height="20" rx="3"/>
+            <text x="28" y="33" text-anchor="middle" font-size="13" fill="var(--acc)">!</text>
+          </svg></div>
+          <div><div class="rt">A popup it's never seen can trip it</div></div>
+        </div>
+      </div>
+      <div class="rulebox">BROWSER FIRST</div>
+    </div>
+  </section>
+
+  <!-- ================= 12 · RECORD & PLAY ================= -->
+  <section class="slide" data-ch="5">
+    <div class="kick"><span class="holes"><i></i><i></i><i></i></span>RECORD &amp; PLAY</div>
+    <h1>Show it <span class="a">once</span>.</h1>
+    <div class="body">
+      <div class="flow">
+        <div class="fnode">
+          <div class="fic"><svg width="64" height="64" viewBox="0 0 64 64">
+            <path d="M26 14 L26 44 L34 36 L40 50 L46 47 L40 34 L50 32 Z" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linejoin="round"/>
+            <circle cx="17" cy="17" r="6" fill="none" stroke="var(--acc)" stroke-width="1.8"/>
+            <circle cx="17" cy="17" r="2.2" fill="var(--acc)"/>
+          </svg></div>
+          <div class="ft">You do it once</div>
+        </div>
+        <div class="farr"><svg width="40" height="26" viewBox="0 0 40 26"><path class="accs" d="M4 13 C14 13 22 13 30 13 M25 7 L32 13 L25 19" /></svg></div>
+        <div class="fnode">
+          <div class="fic"><svg width="64" height="64" viewBox="0 0 64 64">
+            <path class="stroke" d="M8 32 C16 20 26 14 32 14 C38 14 48 20 56 32 C48 44 38 50 32 50 C26 50 16 44 8 32 Z"/>
+            <circle cx="32" cy="32" r="8" fill="none" stroke="var(--acc)" stroke-width="2"/>
+          </svg></div>
+          <div class="ft">The AI watches</div>
+        </div>
+        <div class="farr"><svg width="40" height="26" viewBox="0 0 40 26"><path class="accs" d="M4 13 C14 13 22 13 30 13 M25 7 L32 13 L25 19" /></svg></div>
+        <div class="fnode">
+          <div class="fic"><svg width="64" height="64" viewBox="0 0 64 64">
+            <rect class="stroke" x="16" y="8" width="32" height="48" rx="5"/>
+            <rect x="24" y="15" width="7" height="4" rx="2" fill="var(--acc)"/>
+            <rect x="34" y="22" width="7" height="4" rx="2" fill="var(--acc)"/>
+            <rect x="24" y="29" width="7" height="4" rx="2" fill="var(--acc)"/>
+            <rect x="24" y="36" width="7" height="4" rx="2" fill="var(--acc)" opacity=".55"/>
+            <rect x="34" y="43" width="7" height="4" rx="2" fill="var(--acc)" opacity=".55"/>
+          </svg></div>
+          <div class="ft">It writes a skill</div>
+        </div>
+        <div class="farr"><svg width="40" height="26" viewBox="0 0 40 26"><path class="accs" d="M4 13 C14 13 22 13 30 13 M25 7 L32 13 L25 19" /></svg></div>
+        <div class="fnode big">
+          <div class="fic" style="height:58px"></div>
+          <div class="ft">×100</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 13 · WHICH TASKS ================= -->
+  <section class="slide" data-ch="5" data-mode="cur">
+    <div class="kick"><span class="holes"><i></i><i></i><i></i></span>RECORD &amp; PLAY</div>
+    <h1>Record it only if <span class="a">all three</span>.</h1>
+    <div class="body">
+      <div class="checks">
+        <div class="check sp" data-s="1">
+          <div class="cic"><svg width="82" height="76" viewBox="0 0 82 76">
+            <rect class="haird" x="8" y="6" width="50" height="34" rx="5"/>
+            <rect class="haird" x="15" y="16" width="50" height="34" rx="5"/>
+            <rect class="stroke" x="22" y="26" width="50" height="34" rx="5"/>
+          </svg></div>
+          <div class="ct">Same shape every time</div>
+          <div class="cs">details change, steps don't</div>
+        </div>
+        <div class="check sp" data-s="2">
+          <div class="cic"><svg width="82" height="76" viewBox="0 0 82 76">
+            <path class="stroke" d="M8 38 L74 38 M66 30 L74 38 L66 46"/>
+            <path class="haird" d="M40 38 C48 38 50 20 60 16" stroke-dasharray="4 5"/>
+            <line x1="54" y1="10" x2="66" y2="22" stroke="var(--bad)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="66" y1="10" x2="54" y2="22" stroke="var(--bad)" stroke-width="2" stroke-linecap="round"/>
+          </svg></div>
+          <div class="ct">No judgment calls</div>
+          <div class="cs">nothing that "depends"</div>
+        </div>
+        <div class="check sp" data-s="3">
+          <div class="cic"><svg width="96" height="76" viewBox="0 0 96 76">
+            <rect class="haird" x="8" y="34" width="40" height="8" rx="3"/>
+            <rect class="haird" x="8" y="46" width="40" height="8" rx="3"/>
+            <rect class="stroke" x="8" y="22" width="40" height="8" rx="3"/>
+            <text x="60" y="43" font-size="15" fill="var(--acc)">×50</text>
+          </svg></div>
+          <div class="ct">Real volume waiting</div>
+          <div class="cs">twenty, fifty, a hundred repeats</div>
+        </div>
+      </div>
+      <div class="caveat">MAC ONLY, FOR NOW · NOT YET IN THE EU / UK</div>
+    </div>
+  </section>
+
+  <!-- ================= THE RAMP ================= -->
+  <section class="slide" data-ch="6">
+    <div class="kick"><span class="holes"><i></i><i></i><i></i></span>THE RAMP</div>
+    <h1>Trust it like a <span class="a">new hire</span>.</h1>
+    <div class="body">
+      <svg viewBox="0 0 920 340" style="width:100%;max-width:1000px">
+        <!-- staircase -->
+        <path class="stroke" d="M40 300 H250 V232 H460 V164 H670 V96 H890" stroke-width="1.6"/>
+        <g>
+          <circle cx="145" cy="300" r="6" fill="var(--acc)"/>
+          <text x="145" y="270" text-anchor="middle" font-size="15" fill="var(--ink)" font-weight="600">WATCH</text>
+          <text x="145" y="330" text-anchor="middle" font-size="10.5" fill="var(--dim)">EVERY RUN</text>
+        </g>
+        <g>
+          <circle cx="355" cy="232" r="6" fill="var(--acc)"/>
+          <text x="355" y="202" text-anchor="middle" font-size="15" fill="var(--ink)" font-weight="600">CHECK</text>
+          <text x="355" y="262" text-anchor="middle" font-size="10.5" fill="var(--dim)">THE RECEIPTS</text>
+        </g>
+        <g class="rv" data-s="1">
+          <circle cx="565" cy="164" r="6" fill="var(--acc)"/>
+          <text x="565" y="134" text-anchor="middle" font-size="15" fill="var(--ink)" font-weight="600">BACKGROUND</text>
+          <text x="565" y="194" text-anchor="middle" font-size="10.5" fill="var(--dim)">AFTER CLEAN RUNS</text>
+        </g>
+        <g class="rv" data-s="2">
+          <circle cx="785" cy="96" r="6" fill="var(--acc)"/>
+          <text x="785" y="66" text-anchor="middle" font-size="15" fill="var(--ink)" font-weight="600">AUTOMATE</text>
+          <text x="785" y="126" text-anchor="middle" font-size="10.5" fill="var(--dim)">SKILL + SCHEDULE</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ================= 16 · RECAP ================= -->
+  <section class="slide" data-ch="6">
+    <div class="kick"><span class="holes"><i></i><i></i><i></i></span>RECAP</div>
+    <h1>The short version.</h1>
+    <div class="body">
+      <div class="recap">
+        <div class="rcrow rc" data-s="1"><span class="rslot"></span><div class="rtx">Move &amp; figure it out</div></div>
+        <div class="rcrow rc" data-s="2"><span class="rslot"></span><div class="rtx">One question — <span class="a">browser or installed?</span></div></div>
+        <div class="rcrow rc" data-s="3"><span class="rslot"></span><div class="rtx">Show it once → it runs <span class="a">×100</span></div></div>
+        <div class="rcrow rc" data-s="4"><span class="rslot"></span><div class="rtx">Watched runs first, automation last</div></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const CHAPTERS=[
+  {label:"TWO JOBS",     acc:"#D9A64A"},
+  {label:"ONE QUESTION", acc:"#3EC0A0"},
+  {label:"IN THE BROWSER",acc:"#6E9FF4"},
+  {label:"THE APP",      acc:"#A98CFF"},
+  {label:"COMPUTER USE", acc:"#7BC86B"},
+  {label:"RECORD & PLAY",acc:"#E25B4E"},
+  {label:"THE RAMP",     acc:"#D8CFBA"},
+];
+const slides=[...document.querySelectorAll('.slide')];
+const nav=document.getElementById('nav');
+const counter=document.getElementById('counter');
+const stage=document.getElementById('stage');
+
+/* build nav */
+CHAPTERS.forEach((c,i)=>{
+  const li=document.createElement('li');
+  li.innerHTML='<span class="slot"></span><span class="lbl">'+c.label+'</span>';
+  li.onclick=()=>{const first=slides.findIndex(s=>+s.dataset.ch===i); if(first>-1) go(first,'fwd');};
+  nav.appendChild(li);
+});
+const navLis=[...nav.children];
+
+let cur=0, step=0;
+const modeOf=s=>s.dataset.mode||'add';
+const stepsOf=s=>{const els=[...s.querySelectorAll('[data-s]')];return els.length?Math.max(...els.map(e=>+e.dataset.s)):0};
+const minOf=s=>modeOf(s)==='cur'?Math.min(1,stepsOf(s)):0;
+
+function paint(){
+  const s=slides[cur], mode=modeOf(s);
+  s.querySelectorAll('[data-s]').forEach(e=>{
+    const n=+e.dataset.s;
+    if(mode==='cur'){e.classList.toggle('cur',n===step);}
+    else{e.classList.toggle('on',n<=step);e.classList.toggle('cur',n===step);}
+  });
+}
+function go(i,dir){
+  cur=Math.max(0,Math.min(slides.length-1,i));
+  const s=slides[cur];
+  step=(dir==='back')?stepsOf(s):minOf(s);
+  slides.forEach((sl,j)=>sl.classList.toggle('show',j===cur));
+  counter.textContent=(cur+1)+'/'+slides.length;
+  const ch=+s.dataset.ch;
+  document.documentElement.style.setProperty('--acc',CHAPTERS[ch].acc);
+  navLis.forEach((li,j)=>{li.classList.toggle('act',j===ch);li.classList.toggle('done',j<ch);});
+  paint();
+}
+function fwd(){ if(step<stepsOf(slides[cur])){step++;paint();} else if(cur<slides.length-1){go(cur+1,'fwd');} }
+function back(){ if(step>minOf(slides[cur])){step--;paint();} else if(cur>0){go(cur-1,'back');} }
+
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();fwd();}
+  if(e.key==='ArrowLeft'){e.preventDefault();back();}
+});
+
+/* fill the viewport — no letterbox bars */
+function fit(){
+  const vw=innerWidth, vh=innerHeight;
+  const W=Math.max(1200,Math.min(1640,720*vw/vh));
+  stage.style.width=W+'px';
+  const sc=Math.min(vw/W,vh/720);
+  stage.style.transform='translate(-50%,-50%) scale('+sc+')';
+}
+addEventListener('resize',fit);fit();
+
+/* hash jump for verification: #s3 or #s3.2 */
+function hashJump(){
+  const m=location.hash.match(/^#s(\d+)(?:\.(\d+))?$/);
+  if(!m)return;
+  go(+m[1]-1,'fwd');
+  if(m[2]!==undefined){step=Math.min(+m[2],stepsOf(slides[cur]));paint();}
+}
+addEventListener('hashchange',hashJump);
+go(0,'fwd');hashJump();
+</script>
+</body>
+</html>
